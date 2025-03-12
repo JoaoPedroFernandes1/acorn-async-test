@@ -1,6 +1,7 @@
 from flask import Flask, jsonify
 import time
 import threading
+import sys
 
 app = Flask(__name__)
 
@@ -18,8 +19,11 @@ def pessoa(nome, idade):
 
 # Força a aplicação a esperar 70 segundos antes de responder para verificar o erro de Timeout
 def long_task():
-    time.sleep(70)  # Simula uma tarefa longa, mas em segundo plano
-    print("Tarefa concluída!")
+    print("Tarefa iniciada!")  # Confirmação da inicialização
+    sys.stdout.flush()  # Força a exibição do print nos logs
+    time.sleep(70)  # Simula uma tarefa longa
+    print("Tarefa concluída!")  # Deveria aparecer após 70s
+    sys.stdout.flush()
 
 
 @app.route('/timeout')
