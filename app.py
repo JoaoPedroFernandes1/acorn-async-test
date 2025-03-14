@@ -1,4 +1,4 @@
-from flask import Flask, jsonify
+from flask import Flask, jsonify, Response
 import time
 import threading
 import sys
@@ -17,6 +17,12 @@ def long_task(task_id):
     tasks[task_id] = "Tarefa Concluida"
     print("Tarefa concluída!")  # É para aparecer após 70s
     #sys.stdout.flush()
+
+
+def generate():
+    yield "Tarefa iniciada...\n"
+    time.sleep(70)  # Simula uma tarefa longa
+    yield "Tarefa concluída!\n"
 
 
 #? ROTA 1: PADRÃO
@@ -62,6 +68,11 @@ def start_task():
 def get_status(task_id):
     status = tasks.get(task_id, "Tarefa nao encontrada")
     return jsonify({"task_id": task_id, "status": status})
+
+
+@app.route('/stream')
+def stream():
+    return Response(generate(), mimetype="text/plain")
 
 # Main
 if __name__ == "__main__":
