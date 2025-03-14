@@ -41,6 +41,7 @@ def timeout():
     return jsonify({"message": "Tarefa iniciada, verifique os logs para status do time.sleep"}), 202
 
 
+@app.route('/start')
 def start_task():
     task_id = str(len(tasks) + 1)  # Gera um ID simples
     tasks[task_id] = "Em andamento"
