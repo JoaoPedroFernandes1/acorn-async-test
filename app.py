@@ -3,6 +3,7 @@ import time
 import threading
 import sys
 from waitress import serve
+import asyncio
 
 app = Flask(__name__)
 
@@ -23,7 +24,7 @@ def long_task(task_id):
 def generate():
     yield "Tarefa iniciada...\n"
     sys.stdout.flush()
-    time.sleep(70)
+    asyncio.run(asyncio.sleep(70))  # Espera sem travar o worker
     yield "Tarefa concluída!\n"
     sys.stdout.flush()
 
