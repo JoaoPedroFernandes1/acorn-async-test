@@ -2,6 +2,7 @@ from flask import Flask, jsonify, Response
 import time
 import threading
 import sys
+from waitress import serve
 
 app = Flask(__name__)
 
@@ -21,8 +22,10 @@ def long_task(task_id):
 
 def generate():
     yield "Tarefa iniciada...\n"
-    time.sleep(70)  # Simula uma tarefa longa
+    sys.stdout.flush()
+    time.sleep(70)
     yield "Tarefa concluída!\n"
+    sys.stdout.flush()
 
 
 #? ROTA 1: PADRÃO
@@ -76,4 +79,6 @@ def stream():
 
 # Main
 if __name__ == "__main__":
-    app.run(debug=True)
+    from waitress import serve
+    print("Rodando com Waitress no Windows...")
+    serve(app, host="0.0.0.0", port=8000)
