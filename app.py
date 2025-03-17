@@ -1,17 +1,18 @@
-from flask import Flask, jsonify, Response
+from flask import Flask, jsonify, Response, request
 import time
 import threading
 import sys
 from waitress import serve
 import asyncio
+from celery import Celery
 
 app = Flask(__name__)
 
 
-# Dicionário para armazenar status das tarefas
+#* Dicionário para armazenar status das tarefas
 tasks = {}  
 
-#! FUNÇÃO: Força a aplicação a esperar 70 segundos antes de responder para verificar o erro de Timeout
+#* FUNÇÃO: Força a aplicação a esperar 70 segundos antes de responder para verificar o erro de Timeout
 def long_task(task_id):
     print("Tarefa iniciada!")  # Confirmação da inicialização
     #sys.stdout.flush()  # Força a exibição do print nos logs
@@ -21,12 +22,21 @@ def long_task(task_id):
     #sys.stdout.flush()
 
 
+#* FUNÇÃO: processo assíncrono
 def generate():
     yield "Tarefa iniciada...\n"
     sys.stdout.flush()
     asyncio.run(asyncio.sleep(70))  # Espera sem travar o worker
     yield "Tarefa concluída!\n"
     sys.stdout.flush()
+
+
+#! Configuração do Celery
+app.config["CELERY_BROKER_URL"] = "redis://localhost:6379/0"
+app.config["CELERY_RESULT_BACKEND"] = "redis://localhost:6379/0"
+
+celery = Celery(app.name, broker=app.config["CELERY_BROKER_URL"])
+celery.conf.update(app.config)
 
 
 #? ROTA 1: PADRÃO
@@ -67,16 +77,34 @@ def start_task():
     return jsonify({"message": "Tarefa iniciada", "task_id": task_id}), 202
 
 
-#! ROTA 6: VERIFICA O STATUS DA TAREFA e É COMPLEMENTAR A ROTA 5
+#? ROTA 6: VERIFICA O STATUS DA TAREFA e É COMPLEMENTAR A ROTA 5
 @app.route('/status/<task_id>')
 def get_status(task_id):
     status = tasks.get(task_id, "Tarefa nao encontrada")
     return jsonify({"task_id": task_id, "status": status})
 
 
+#? ROTA 7: FLASK STREAMING
 @app.route('/stream')
 def stream():
     return Response(generate(), mimetype="text/plain")
+
+
+#! ROTAS 8: CELERY + REDIS
+@celery.task
+def process_task(task_id):
+    time.sleep(70)  # Simulando um processamento demorado
+    return {"task_id": task_id, "status": "completed"}
+
+@app.route("/start-task", methods=["POST"])
+def start_task():
+    task = process_task.apply_async(args=["123"])  # Gera uma tarefa assíncrona
+    return jsonify({"task_id": task.id}), 202
+
+@app.route("/task-status/<task_id>", methods=["GET"])
+def task_status(task_id):
+    task = process_task.AsyncResult(task_id)
+    return jsonify({"task_id": task.id, "status": task.state})
 
 # Main
 if __name__ == "__main__":
