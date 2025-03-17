@@ -67,7 +67,7 @@ def timeout():
 
 #! ROTA 5: INICIA UMA TAREFA
 @app.route('/start-task', methods=["POST"])
-def start_task():
+def start_task_1():
     task_id = str(len(tasks) + 1)  # Gera um ID simples
     tasks[task_id] = "Tarefa em andamento"
     
@@ -97,7 +97,7 @@ def process_task(task_id):
     return {"task_id": task_id, "status": "completed"}
 
 @app.route("/start-celery-task", methods=["POST"])
-def start_task():
+def start_task_2():
     task = process_task.apply_async(args=["123"])  # Gera uma tarefa assíncrona
     return jsonify({"task_id": task.id}), 202
 
