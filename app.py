@@ -99,7 +99,7 @@ def process_task(task_id):
 @app.route("/start-celery-task", methods=["POST"])
 def start_task_2():
     task = process_task.apply_async(args=["123"])  # Gera uma tarefa assíncrona
-    return jsonify({"task_id": task.id}), 202
+    return jsonify({"task_id": task.id, "status": "Task started"}), 202
 
 @app.route("/task-status/<task_id>", methods=["GET"])
 def task_status(task_id):
