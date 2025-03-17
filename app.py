@@ -32,8 +32,8 @@ def generate():
 
 
 #! Configuração do Celery
-app.config["CELERY_BROKER_URL"] = "redis://localhost:6379/0"
-app.config["CELERY_RESULT_BACKEND"] = "redis://localhost:6379/0"
+app.config["CELERY_BROKER_URL"] = "rediss://:p06093b8898488be4026a791e27b680d79d75fcbc5cd3ebecc93fcf7fe7e67b04@ec2-34-237-159-195.compute-1.amazonaws.com:20850"
+app.config["CELERY_RESULT_BACKEND"] = "rediss://:p06093b8898488be4026a791e27b680d79d75fcbc5cd3ebecc93fcf7fe7e67b04@ec2-34-237-159-195.compute-1.amazonaws.com:20850"
 
 celery = Celery(app.name, broker=app.config["CELERY_BROKER_URL"])
 celery.conf.update(app.config)
